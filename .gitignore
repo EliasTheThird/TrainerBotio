@@ -1,0 +1,4 @@
+.env
+.vccode
+node_modules
+trivia-database.js

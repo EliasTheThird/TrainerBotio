@@ -1,0 +1,11 @@
+{
+    "cSpell.words": [
+        "cooldown",
+        "cooldowns",
+        "devs",
+        "eventee"
+    ]
+    // Whether git is enabled.
+    "git.enabled": true,
+}
+
