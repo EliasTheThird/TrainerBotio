@@ -15,13 +15,13 @@ module.exports = {
         try {
             // Configuration variables
             const staffChannelId = '1270803780115628042';
-            const approvalChannelId = '1095238175187816449';
+            const approvalChannelId = '1123709712005877821';  // Testing: 1095238175187816449 || Art: 1123709712005877821
             const pingRoleId = '1270813980063174787';
 
             // Fetching the uploaded image, title, and description
             const image = interaction.options.getAttachment('image');
             const title = interaction.options.getString('title') || 'Untitled';
-            const description = interaction.options.getString('description') || '';
+            const description = interaction.options.getString('description') || ' ';
 
             if (!image) {
                 await interaction.reply({ content: "You must upload an image.", ephemeral: true });
