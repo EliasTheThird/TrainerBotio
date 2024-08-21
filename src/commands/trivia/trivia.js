@@ -10,6 +10,7 @@ const path = require('path');
 const triviaQuestions = require('../../database/trivia-database');
 
 const leaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboard.json');
+const backupLeaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboard-backup.json');
 const channelId = '1095238175187816449'; // general: 1064371335016489011 || testing: 1095238175187816449
 const threadChannelId = '1270799837557686342';
 const highLevelRoleId = '1103768817122934876';
@@ -90,9 +91,8 @@ const normalizeAnswer = (answer) => {
     .trim()                        // Remove leading and trailing spaces
     .normalize('NFD')              // Normalize accents and diacritics
     .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-    .replace(/\s+/g, '')          // Remove all spaces
+    .replace(/\s+/g, '');          // Remove all spaces
 };
-
 
 async function startTriviaLoop(client) {
   const channel = client.channels.cache.get(channelId);
@@ -196,15 +196,30 @@ async function announceWinner(client, winner, randomXP) {
   }
 }
 
-
 function updateLeaderboard(userId, xp, answeredCorrectly) {
-  fs.readFile(leaderboardPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading leaderboard file:', err);
-      return;
+  try {
+    // Backup the leaderboard file
+    if (fs.existsSync(leaderboardPath)) {
+      fs.copyFileSync(leaderboardPath, backupLeaderboardPath);
     }
 
-    const leaderboard = JSON.parse(data);
+    // Read leaderboard data synchronously
+    let leaderboardData = fs.readFileSync(leaderboardPath, 'utf8');
+    let leaderboard;
+
+    try {
+      leaderboard = JSON.parse(leaderboardData);
+    } catch (error) {
+      console.error('Error parsing leaderboard file, restoring from backup:', error);
+      // Restore from backup if JSON is corrupted
+      if (fs.existsSync(backupLeaderboardPath)) {
+        leaderboardData = fs.readFileSync(backupLeaderboardPath, 'utf8');
+        leaderboard = JSON.parse(leaderboardData);
+      } else {
+        leaderboard = { winners: [] }; // If no backup is available, initialize an empty leaderboard
+      }
+    }
+
     let user = leaderboard.winners.find(w => w.id === userId);
 
     if (user) {
@@ -214,17 +229,16 @@ function updateLeaderboard(userId, xp, answeredCorrectly) {
       user = {
         id: userId,
         xp: xp,
-        correctAnswers: answeredCorrectly
+        correctAnswers: answeredCorrectly,
       };
       leaderboard.winners.push(user);
     }
 
-    fs.writeFile(leaderboardPath, JSON.stringify(leaderboard, null, 2), err => {
-      if (err) {
-        console.error('Error writing to leaderboard file:', err);
-      }
-    });
-  });
+    // Write leaderboard data synchronously
+    fs.writeFileSync(leaderboardPath, JSON.stringify(leaderboard, null, 2));
+  } catch (err) {
+    console.error('Error updating leaderboard:', err);
+  }
 }
 
 function getRandomInt(min, max) {
