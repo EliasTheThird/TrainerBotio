@@ -13,6 +13,28 @@ module.exports = {
      */
     callback: async (client, interaction) => {
         try {
+            // Defer the reply to ensure we don't hit the 3-second timeout
+            await interaction.deferReply({ ephemeral: true });
+
+            // Initialize cooldown map if it doesn't exist
+            if (!client.cooldowns) {
+                client.cooldowns = new Map();
+            }
+
+            // Per-person cooldown key
+            const cooldownKey = `${interaction.user.id}-art-submission`; // Unique per-user cooldown key
+            const cooldown = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+            if (client.cooldowns.has(cooldownKey) && Date.now() - client.cooldowns.get(cooldownKey) < cooldown) {
+                await interaction.editReply({
+                    content: 'You have already submitted art within the last 24 hours. Please wait before submitting again.',
+                });
+                return;
+            }
+
+            // Set the cooldown for this user
+            client.cooldowns.set(cooldownKey, Date.now());
+
             // Configuration variables
             const staffChannelId = '1270803780115628042';
             const approvalChannelId = '1123709712005877821';  // Testing: 1095238175187816449 || Art: 1123709712005877821
@@ -24,7 +46,7 @@ module.exports = {
             const description = interaction.options.getString('description') || ' ';
 
             if (!image) {
-                await interaction.reply({ content: "You must upload an image.", ephemeral: true });
+                await interaction.editReply({ content: "You must upload an image." });
                 return;
             }
 
@@ -49,7 +71,6 @@ module.exports = {
             const collector = approvalMessage.createReactionCollector({ filter, max: 1, time: 86400000 }); // Collect for 24 hours
 
             collector.on('collect', async (reaction, user) => {
-
                 if (reaction.emoji.name === '✅') {
                     const approvalEmbed = new EmbedBuilder()
                         .setTitle(title)
@@ -66,7 +87,6 @@ module.exports = {
                 } else if (reaction.emoji.name === '❌') {
                     await staffChannel.send('The art submission has been denied.');
                 }
-
             });
 
             collector.on('end', collected => {
@@ -75,10 +95,10 @@ module.exports = {
                 }
             });
 
-            await interaction.reply({ content: "Your art submission has been sent for approval.", ephemeral: true });
+            await interaction.editReply({ content: "Your art submission has been sent for approval." });
         } catch (error) {
             console.error('An error occurred:', error);
-            await interaction.reply({ content: 'An error occurred while processing your submission.', ephemeral: true });
+            await interaction.editReply({ content: 'An error occurred while processing your submission.' });
         }
     },
 
