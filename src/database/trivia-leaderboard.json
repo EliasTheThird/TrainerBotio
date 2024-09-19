@@ -2,43 +2,43 @@
   "winners": [
     {
       "id": "742766266699481089",
-      "xp": 818,
-      "correctAnswers": 11
+      "xp": 1221,
+      "correctAnswers": 16
     },
     {
       "id": "793355820032327722",
-      "xp": 339,
-      "correctAnswers": 4
+      "xp": 568,
+      "correctAnswers": 7
     },
     {
       "id": "1224055864629924011",
-      "xp": 8707,
-      "correctAnswers": 111
+      "xp": 9470,
+      "correctAnswers": 121
     },
     {
       "id": "468859863292968970",
-      "xp": 1004,
-      "correctAnswers": 12
+      "xp": 1446,
+      "correctAnswers": 17
     },
     {
       "id": "216404071253278720",
-      "xp": 3947,
-      "correctAnswers": 53
+      "xp": 5397,
+      "correctAnswers": 73
     },
     {
       "id": "985103588206448661",
-      "xp": 627,
-      "correctAnswers": 8
+      "xp": 689,
+      "correctAnswers": 9
     },
     {
       "id": "1214131743150448700",
-      "xp": 4524,
-      "correctAnswers": 59
+      "xp": 7927,
+      "correctAnswers": 105
     },
     {
       "id": "699054958632370217",
-      "xp": 4736,
-      "correctAnswers": 64
+      "xp": 5713,
+      "correctAnswers": 76
     },
     {
       "id": "1225660239089631295",
@@ -52,8 +52,8 @@
     },
     {
       "id": "1004937836497223720",
-      "xp": 1596,
-      "correctAnswers": 23
+      "xp": 2067,
+      "correctAnswers": 29
     },
     {
       "id": "530185702311460884",
@@ -62,8 +62,8 @@
     },
     {
       "id": "1052149335565021185",
-      "xp": 1306,
-      "correctAnswers": 17
+      "xp": 1468,
+      "correctAnswers": 19
     },
     {
       "id": "1126034704290824244",
@@ -72,8 +72,8 @@
     },
     {
       "id": "795314894538014741",
-      "xp": 2191,
-      "correctAnswers": 31
+      "xp": 2528,
+      "correctAnswers": 36
     },
     {
       "id": "839270300775874583",
@@ -107,23 +107,23 @@
     },
     {
       "id": "893609319151595521",
-      "xp": 578,
-      "correctAnswers": 8
+      "xp": 662,
+      "correctAnswers": 9
     },
     {
       "id": "909871406630731776",
-      "xp": 1624,
-      "correctAnswers": 22
+      "xp": 2460,
+      "correctAnswers": 33
     },
     {
       "id": "1095344380975525888",
-      "xp": 2312,
-      "correctAnswers": 30
+      "xp": 3405,
+      "correctAnswers": 44
     },
     {
       "id": "1152202505338499073",
-      "xp": 461,
-      "correctAnswers": 6
+      "xp": 632,
+      "correctAnswers": 8
     },
     {
       "id": "1056216077748666388",
@@ -137,8 +137,8 @@
     },
     {
       "id": "678344927997853742",
-      "xp": 94,
-      "correctAnswers": 1
+      "xp": 182,
+      "correctAnswers": 2
     },
     {
       "id": "1232432919310499880",
@@ -162,8 +162,8 @@
     },
     {
       "id": "1087305276811645048",
-      "xp": 166,
-      "correctAnswers": 2
+      "xp": 251,
+      "correctAnswers": 3
     },
     {
       "id": "193169855007031296",
@@ -182,8 +182,8 @@
     },
     {
       "id": "1146311690502287420",
-      "xp": 1454,
-      "correctAnswers": 21
+      "xp": 1765,
+      "correctAnswers": 25
     },
     {
       "id": "1042149840844505171",
@@ -192,13 +192,13 @@
     },
     {
       "id": "769924149648424990",
-      "xp": 5248,
-      "correctAnswers": 55
+      "xp": 7209,
+      "correctAnswers": 80
     },
     {
       "id": "1070719294704463882",
-      "xp": 372,
-      "correctAnswers": 5
+      "xp": 548,
+      "correctAnswers": 7
     },
     {
       "id": "927830230813540362",
@@ -207,8 +207,8 @@
     },
     {
       "id": "936691879142105118",
-      "xp": 239,
-      "correctAnswers": 3
+      "xp": 410,
+      "correctAnswers": 5
     },
     {
       "id": "1031700630185713697",
@@ -217,8 +217,8 @@
     },
     {
       "id": "1230951285935837194",
-      "xp": 92,
-      "correctAnswers": 1
+      "xp": 465,
+      "correctAnswers": 6
     },
     {
       "id": "944937592279949332",
@@ -237,8 +237,8 @@
     },
     {
       "id": "785973591237853225",
-      "xp": 23154,
-      "correctAnswers": 307
+      "xp": 29952,
+      "correctAnswers": 400
     },
     {
       "id": "1076505597475819594",
@@ -258,6 +258,16 @@
     {
       "id": "1038020939230752839",
       "xp": 69,
+      "correctAnswers": 1
+    },
+    {
+      "id": "811308214326132737",
+      "xp": 527,
+      "correctAnswers": 6
+    },
+    {
+      "id": "793129349142151180",
+      "xp": 98,
       "correctAnswers": 1
     }
   ]

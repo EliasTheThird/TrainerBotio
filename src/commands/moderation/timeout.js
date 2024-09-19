@@ -90,7 +90,7 @@ module.exports = {
   name: 'timeout',
   description: 'Timeout a user.',
   // devOnly: true,
-  //testOnly: true,
+  testOnly: true,
   options: [
     {
       name: 'target-user',
