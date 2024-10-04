@@ -2,6 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 
 module.exports = (client) => {
   client.on('messageReactionAdd', async (reaction, user) => {
+
     // Ensure reaction is fully fetched
     if (reaction.partial) {
       try {

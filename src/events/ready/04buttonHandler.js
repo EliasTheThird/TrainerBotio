@@ -2,6 +2,7 @@ const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = req
 
 module.exports = (client) => {
   client.on('interactionCreate', async (interaction) => {
+
     if (interaction.isButton() && interaction.customId === 'unban_request') {
       const modal = new ModalBuilder()
         .setCustomId('unban_modal')

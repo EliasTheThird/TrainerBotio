@@ -67,6 +67,7 @@ module.exports = {
     }
   },
 
+  deleted: true,
   name: 'trivia',
   description: 'Manage the trivia game loop.',
   options: [

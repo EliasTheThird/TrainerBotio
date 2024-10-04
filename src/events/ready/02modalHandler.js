@@ -2,6 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 
 module.exports = (client) => {
   client.on('interactionCreate', async (interaction) => {
+
     if (interaction.isModalSubmit() && interaction.customId === 'unban_modal') {
       const whyBanned = interaction.fields.getTextInputValue('why_banned');
       const whyUnbanned = interaction.fields.getTextInputValue('why_unbanned');

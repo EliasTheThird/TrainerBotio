@@ -52,6 +52,12 @@ module.exports = async (client) => {
         }
       }
     }
+
+    client.trivia = {
+      loopRunning: false,
+      interval: null,
+    };
+    
   } catch (error) {
     console.log(`There was an error: ${error}`);
   }
