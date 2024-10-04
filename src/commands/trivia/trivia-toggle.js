@@ -7,25 +7,29 @@ const {
 } = require('discord.js');
 
 module.exports = {
-  name: 'status-update',
-  description: 'Creates a status update embed with buttons.',
+  //deleted: true,
+  name: 'trivia-toggle',
+  description: 'Post an embed that can toggle trivia.',
+
+
   callback: async (client, interaction) => {
-    // Create the buttons
+
+    // Creates buttons
     const checkButton = new ButtonBuilder()
-      .setCustomId('status_check')
-      .setLabel('Start Posting')
+      .setCustomId('trivia_start')
+      .setLabel('Start Trivia')
       .setStyle(ButtonStyle.Success);
 
     const crossButton = new ButtonBuilder()
-      .setCustomId('status_cross')
-      .setLabel('Stop Posting')
+      .setCustomId('trivia_stop')
+      .setLabel('Stop Trivia')
       .setStyle(ButtonStyle.Danger);
 
-    // Create an embed
+    // Creates embed
     const embed = new EmbedBuilder()
-      .setTitle('Status Update')
-      .setDescription('Press the buttons below to control status updates.')
-      .setColor('#0000FF');
+      .setTitle('Trivia Toggle')
+      .setDescription('Press the buttons below to control the Trivia status!')
+      .setColor('#e67e22');
 
     // Send the embed with buttons
     await interaction.reply({
