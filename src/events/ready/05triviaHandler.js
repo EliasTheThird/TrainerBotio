@@ -5,11 +5,11 @@ const path = require('path');
 
 const leaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboard.json');
 const backupLeaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboard-backup.json');
-const channelId = '1213751873383829536'; // general: 1064371335016489011 || testing: 1095238175187816449 || tServer: 1213751873383829536
-const threadChannelId = '1160015142101192764'; // TDG: 1270799837557686342 || tServer: 1160015142101192764
-const highLevelRoleId = '1121896631277736026'; // TDG: 1103768817122934876 || tServer: 1121896631277736026
-const logsChannelId = '1160015142101192764' // TDG: || tServer: 1160015142101192764
-const admins = '1167886120445562880' // TDG: 1126183128084529203 || tServer: 1167886120445562880
+const channelId = '1064371335016489011'; // general: 1064371335016489011 || testing: 1095238175187816449 || tServer: 1213751873383829536
+const threadChannelId = '1270799837557686342'; // TDG: 1270799837557686342 || tServer: 1160015142101192764
+const highLevelRoleId = '1103768817122934876'; // TDG: 1103768817122934876 || tServer: 1121896631277736026
+const logsChannelId = '1291931717271031859'; // TDG: 1291931717271031859 || tServer: 1160015142101192764
+const admins = '1126183128084529203'; // TDG: 1126183128084529203 || tServer: 1167886120445562880
 
 // Set the desired timezone
 const options = {
@@ -28,6 +28,7 @@ let triviaLoopRunning = false;
 let currentQuestion = null;
 
 module.exports = (client) => {
+  
   let interval; // Variable to hold the setInterval reference
 
   client.on('interactionCreate', async (interaction) => {
@@ -44,9 +45,9 @@ module.exports = (client) => {
       const logsChannel = await client.channels.fetch(logsChannelId);
       // Log the button press in the logs channel
       if (logsChannel) {
-      await logsChannel.send(`[${formattedDate}] Trivia Command **"${interaction.customId}"** run by: **${interaction.user.username}** (ID: ${interaction.user.id})`);
+        await logsChannel.send(`[${formattedDate}] Trivia Command **"${interaction.customId}"** run by: **${interaction.user.username}** (ID: ${interaction.user.id})`);
       } else {
-      console.error('Logs channel not found!');
+        console.error('Logs channel not found!');
       }
 
       if (interaction.customId === 'trivia_start') {
@@ -57,7 +58,7 @@ module.exports = (client) => {
 
         triviaLoopRunning = true;
         await interaction.update({ embeds: [embed.setColor('#00FF00').setDescription('Trivia game started!')] });
-        startTriviaLoop(client, channel);
+        startTriviaLoop(client);
 
       } else if (interaction.customId === 'trivia_stop') {
         if (!triviaLoopRunning) {
@@ -83,52 +84,50 @@ const normalizeAnswer = (answer) => {
     .replace(/\s+/g, '');          // Remove all spaces
 };
 
-async function startTriviaLoop(client) {
+function startTriviaLoop(client) {
   const channel = client.channels.cache.get(channelId);
   if (!channel) {
     console.error('Trivia channel not found!');
     return;
   }
 
-  const postQuestionAndAwaitAnswer = async () => {
-    const randomXP = getRandomInt(50, 100);
-    const questionStartTime = Date.now();
+  triviaLoopRunning = true; // Start the loop running state
+  console.log('Trivia loop started.');
 
-    await postTriviaQuestion(channel);
-
-    const filter = response => {
-      if (currentQuestion) {
-        const normalizedUserAnswer = normalizeAnswer(response.content);
-        return currentQuestion.answer
-          .map(normalizeAnswer)
-          .some(answer => answer === normalizedUserAnswer);
-      }
-      return false;
-    };
-
-    try {
-      const collected = await channel.awaitMessages({ filter, max: 1, time: 29000, errors: ['time'] }); //59mins: 3540000 || 29S: 29000
-      const winner = collected.first().author;
-
-      await channel.send({ embeds: [createWinnerEmbed(winner, randomXP)] });
-      await announceWinner(client, winner, randomXP);
-    } catch (error) {
-      await channel.send({ embeds: [createClosedEmbed()] });
+  // Check every minute
+  triviaInterval = setInterval(async () => {
+    const now = new Date();
+    if (now.getMinutes() === 0) { // Check if the current minute is zero (top of the hour)
+      await postQuestionAndAwaitAnswer(client, channel);
     }
+  }, 60000); // Check every 60 second
+}
+
+async function postQuestionAndAwaitAnswer(client, channel) {
+  const randomXP = getRandomInt(50, 100);
+  const questionStartTime = Date.now();
+
+  await postTriviaQuestion(channel);
+
+  const filter = response => {
+    if (currentQuestion) {
+      const normalizedUserAnswer = normalizeAnswer(response.content);
+      return currentQuestion.answer
+        .map(normalizeAnswer)
+        .some(answer => answer === normalizedUserAnswer);
+    }
+    return false;
   };
 
-  // Post the first trivia question immediately
-  await postQuestionAndAwaitAnswer();
+  try {
+    const collected = await channel.awaitMessages({ filter, max: 1, time: 3540000, errors: ['time'] }); //59mins: 3540000 || 29S: 29000
+    const winner = collected.first().author;
 
-  // Set up the interval for subsequent questions
-  triviaInterval = setInterval(async () => {
-    if (!triviaLoopRunning) {
-      clearInterval(triviaInterval);
-      return;
-    }
-
-    await postQuestionAndAwaitAnswer();
-  }, 30000); // hour: 3600000 || 30S: 30000
+    await channel.send({ embeds: [createWinnerEmbed(winner, randomXP)] });
+    await announceWinner(client, winner, randomXP);
+  } catch (error) {
+    await channel.send({ embeds: [createClosedEmbed()] });
+  }
 }
 
 async function postTriviaQuestion(channel) {
@@ -172,20 +171,20 @@ async function announceWinner(client, winner, randomXP) {
   if (threadChannel) {
     if (specialUsers.includes(winner.id)) {
       await threadChannel.send(`/xp add member:<@${winner.id}> xp:${randomXP}`);
-      updateLeaderboard(winner.id, randomXP, 1);
+      updateLeaderboard(client, winner.id, randomXP, 1);
     } else if (member.roles.cache.has(highLevelRoleId)) {
       await threadChannel.send(`<@${winner.id}> is over level 100, no XP can be awarded.`);
-      updateLeaderboard(winner.id, randomXP, 1);
+      updateLeaderboard(client, winner.id, randomXP, 1);
     } else {
       await threadChannel.send(`/xp add member:${winner.id} xp:${randomXP}`);
-      updateLeaderboard(winner.id, randomXP, 1);
+      updateLeaderboard(client, winner.id, randomXP, 1);
     }
   } else {
     console.error('Thread channel not found!');
   }
 }
 
-function updateLeaderboard(userId, xp, answeredCorrectly) {
+function updateLeaderboard(client, userId, xp, answeredCorrectly) {
   try {
     // Backup the leaderboard file
     if (fs.existsSync(leaderboardPath)) {

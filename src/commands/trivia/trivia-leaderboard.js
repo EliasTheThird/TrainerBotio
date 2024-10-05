@@ -2,6 +2,8 @@ const fs = require('fs').promises;
 const { ApplicationCommandOptionType, EmbedBuilder } = require('discord.js');
 const path = require('path');
 
+const LEADERS_PER_PAGE = 10; // Number of leaderboard entries per page
+
 module.exports = {
   callback: async (client, interaction) => {
     try {
@@ -21,14 +23,19 @@ module.exports = {
         leaderboard.sort((a, b) => b.correctAnswers - a.correctAnswers);
       }
 
+      // Get the page number and validate it
+      const page = interaction.options.getInteger('page') || 1;
+      const totalPages = Math.ceil(leaderboard.length / LEADERS_PER_PAGE);
+      const currentPage = Math.min(Math.max(page, 1), totalPages); // Ensure the page is within range
+
       // Prepare embed for leaderboard display
       const embed = new EmbedBuilder()
         .setTitle('Trivia Leaderboard')
         .setColor('#e67e22')
-        .setDescription(`Top 10 Players by ${sortBy === 'xp' ? 'XP' : 'Correct Answers'}`)
+        .setDescription(`Top Players by ${sortBy === 'xp' ? 'XP' : 'Correct Answers'} (Page ${currentPage}/${totalPages})`)
         .addFields(
           await Promise.all(
-            leaderboard.slice(0, 10).map(async (winner, index) => {
+            leaderboard.slice((currentPage - 1) * LEADERS_PER_PAGE, currentPage * LEADERS_PER_PAGE).map(async (winner, index) => {
               const user = await client.users.fetch(winner.id).catch(() => null);
               const displayName = user ? user.username : 'Unknown User';
               
@@ -38,7 +45,7 @@ module.exports = {
                 : `Correct Answers: ${winner.correctAnswers}`;
 
               return {
-                name: `${index + 1}. ${displayName}`,
+                name: `${(currentPage - 1) * LEADERS_PER_PAGE + index + 1}. ${displayName}`,
                 value: fieldValue,
                 inline: false,
               };
@@ -72,6 +79,12 @@ module.exports = {
           value: 'xp',
         },
       ],
+    },
+    {
+      name: 'page',
+      description: 'Select the page number of the leaderboard to display',
+      type: ApplicationCommandOptionType.Integer,
+      required: false,
     },
   ],
 };
