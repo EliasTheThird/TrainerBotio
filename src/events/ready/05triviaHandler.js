@@ -9,7 +9,7 @@ const channelId = '1064371335016489011'; // general: 1064371335016489011 || test
 const threadChannelId = '1270799837557686342'; // TDG: 1270799837557686342 || tServer: 1160015142101192764
 const highLevelRoleId = '1103768817122934876'; // TDG: 1103768817122934876 || tServer: 1121896631277736026
 const logsChannelId = '1291931717271031859'; // TDG: 1291931717271031859 || tServer: 1160015142101192764
-const admins = '1126183128084529203'; // TDG: 1126183128084529203 || tServer: 1167886120445562880
+const admins = '1062828085256400896'; // TDG: 1062828085256400896 || tServer: 1167886120445562880
 
 // Set the desired timezone
 const options = {
@@ -207,7 +207,7 @@ function updateLeaderboard(client, userId, xp, answeredCorrectly) {
         // Fetch the logs channel
         client.channels.fetch(logsChannelId).then(logsChannel => {
           if (logsChannel) {
-            logsChannel.send(`<@${admins}> Turn off Trivia, big error`).catch(err => console.error('Failed to send log message:', err));
+            logsChannel.send(`<@&${admins}> Turn off Trivia, big error`).catch(err => console.error('Failed to send log message:', err));
           } else {
             console.error('Logs channel not found!');
           }
