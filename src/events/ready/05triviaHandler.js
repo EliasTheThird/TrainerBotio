@@ -33,13 +33,18 @@ module.exports = (client) => {
 
   client.on('interactionCreate', async (interaction) => {
     if (interaction.isButton()) {
+      
+      if (interaction.channelId !== '1270799684491018310') {
+        return; // Exit if the channel ID does not match
+      }
+      
       const originalEmbed = interaction.message.embeds[0];
       const channel = interaction.channel;
 
       const embed = new EmbedBuilder(originalEmbed.data); // Create a new instance from the existing embed data
 
       const now = new Date();
-      const formattedDate = now.toLocaleString();
+      const formattedDate = now.toLocaleString('en-US', options);
 
       // Get the logs channel
       const logsChannel = await client.channels.fetch(logsChannelId);
