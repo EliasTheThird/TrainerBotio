@@ -5,7 +5,13 @@ module.exports = (client) => {
     if (interaction.isButton()) {
       const { customId } = interaction;
 
+      // Check if the interaction is in the correct guild
       if (interaction.guild.id === '1062827045744279613') { // TDG: 1062827045744279613 || Testing: 1095466674771214480
+        // Ignore interactions from a specific channel
+        if (interaction.channel.id === '1270799684491018310') {
+          return; // Ignore this interaction
+        }
+
         const message = interaction.message;
         if (message.embeds.length) {
           const embedData = message.embeds[0].data;
