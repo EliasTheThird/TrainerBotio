@@ -55,7 +55,7 @@ module.exports = (client) => {
 
       // Send the embed and buttons to the target channel
       try {
-        await targetChannel.send(`<@&1125945415527833712>`); // Send role ping1095466940753002566
+        await targetChannel.send(`<@&'1125945415527833712'>`); // Send role ping1095466940753002566
         const message = await targetChannel.send({ embeds: [embed], components: [actionRow] });
 
       } catch (error) {
