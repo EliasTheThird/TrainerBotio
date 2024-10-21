@@ -1,117 +1,197 @@
-const {
-    ApplicationCommandOptionType,
-    EmbedBuilder, 
-} = require('discord.js');
+const { ApplicationCommandOptionType } = require('discord.js');
 const { createCanvas, loadImage } = require('canvas');
-const path = require('path');
+const fetch = require('node-fetch'); // Import node-fetch for HTTP requests
+const sharp = require('sharp'); // Import sharp for image conversion
+const path = require('path'); // Import path module
+const defaultAvatarPath = path.join(__dirname, '../../media/defaultpfp.jpg');
+const cooldowns = new Map(); // Create a cooldown map to track user cooldowns
 
 module.exports = {
-    /**
-     *
-     * @param {Client} client
-     * @param {Interaction} interaction
-     */
-    callback: async (client, interaction) => {
-        // Configuration variables
-        const quoteFontSize = 48;
-        const authorFontSize = 30;
-        const lineHeight = 54; // Line height should generally be font size + some padding
-        const quoteXPositionFactor = 0.5; // 0.9 means 90% from the left
-        const quoteYPositionFactor = 0.5; // 0.5 means vertically centered
+  /**
+   *
+   * @param {Client} client
+   * @param {Interaction} interaction
+   */
+  callback: async (client, interaction) => {
+    const userId = interaction.user.id;
 
-        // Fetching the message using the ID provided
-        const messageId = interaction.options.getString('message_id');
-        const message = await interaction.channel.messages.fetch(messageId).catch(console.error);
-        if (!message) {
-            await interaction.reply({ content: "Message not found.", ephemeral: true });
-            return;
+    // Cooldown bypass for user ID: 742766266699481089
+    const bypassUserId = '742766266699481089';
+
+    // Check for cooldown only if the user is not the bypass user
+    if (userId !== bypassUserId) {
+      const now = Date.now();
+      const cooldownAmount = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+      // Check if user is in cooldown map
+      if (cooldowns.has(userId)) {
+        const expirationTime = cooldowns.get(userId) + cooldownAmount;
+        if (now < expirationTime) {
+          const timeLeft = Math.round((expirationTime - now) / 1000);
+          await interaction.reply({ content: `Please wait ${timeLeft} more seconds before using this command again.`, ephemeral: true });
+          return;
         }
+      }
 
-        // Load a background image from a relative path
-        const background = await loadImage(path.join(__dirname, '../../media/quote.jpg'));
-        const canvas = createCanvas(background.width, background.height);
-        const ctx = canvas.getContext('2d');
-
-        // Draw the image onto the canvas
-        ctx.drawImage(background, 0, 0);
-
-        // Set the text style for the quote
-        ctx.font = `bold ${quoteFontSize}px Arial`;
-        ctx.fillStyle = 'white';
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 1; // Thickness of the outline
-        ctx.textAlign = 'center';  // Align text to the right
-        ctx.shadowColor = 'black';
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetX = 5;
-        ctx.shadowOffsetY = 5;
-
-        // Text wrapping
-        const lines = getWrappedText(`"${message.content}"`, canvas.width - 40, ctx);
-        const startingY = canvas.height * quoteYPositionFactor - (lines.length * lineHeight) / 2;
-        const xPosition = canvas.width * quoteXPositionFactor;
-
-        // Draw each line of the quote with an outline
-        lines.forEach((line, index) => {
-            ctx.strokeText(line, xPosition, startingY + index * lineHeight); // Draw the outline
-            ctx.fillText(line, xPosition, startingY + index * lineHeight); // Draw the fill
-        });
-
-        // Calculate the width of the author text
-        const authorWidth = ctx.measureText(`- ${message.author.username}`).width;
-
-        // Calculate the starting X position for the author text to right-align it
-        const authorXPosition = canvas.width - 20 - authorWidth;
-
-        // Draw the author text right-aligned
-        ctx.strokeText(`- ${message.author.username}`, authorXPosition, startingY + lines.length * lineHeight + 30);
-        ctx.fillText(`- ${message.author.username}`, authorXPosition, startingY + lines.length * lineHeight + 30);
-
-        // Convert canvas to buffer
-        const buffer = canvas.toBuffer('image/png');
-
-        // Create an embed object
-        const embed = {
-            color: parseInt('2b2d31', 16), // Parse hexadecimal color code to integer
-            description: `[**Jump to Original Message**](https://discord.com/channels/${interaction.guild.id}/${interaction.channelId}/${messageId})`,
-            image: {
-                url: 'attachment://quote.png'
-            },
-};
-
-// Send the embed with the image as an attachment
-await interaction.reply({ embeds: [embed], files: [{ attachment: buffer, name: 'quote.png' }] });
-
-
-},
-
-    name: 'quote',
-    description: 'Quote a message!',
-    options: [
-        {
-            name: 'message_id',
-            description: 'The ID of the message to quote',
-            type: ApplicationCommandOptionType.String,
-            required: true,
-        },
-    ],
-};
-
-function getWrappedText(text, maxWidth, context) {
-    const words = text.split(' ');
-    const lines = [];
-    let currentLine = words[0];
-
-    for (let i = 1; i < words.length; i++) {
-        const word = words[i];
-        const width = context.measureText(currentLine + " " + word).width;
-        if (width < maxWidth) {
-            currentLine += " " + word;
-        } else {
-            lines.push(currentLine);
-            currentLine = word;
-        }
+      // Set the cooldown for the user
+      cooldowns.set(userId, now);
     }
-    lines.push(currentLine);
-    return lines;
+
+    // Configuration variables
+    const baseQuoteFontSize = 60; // Increased base font size for the quote
+    const baseAuthorFontSize = 36; // Increased base font size for the author
+    const lineHeight = 32; // Reduced line height for closer spacing
+
+    // Fetch the message using the ID provided
+    const messageId = interaction.options.getString('message_id');
+    const message = await interaction.channel.messages.fetch(messageId).catch(console.error);
+    if (!message) {
+      await interaction.reply({ content: 'Message not found.', ephemeral: true });
+      return;
+    }
+
+    // Get the author's avatar with a larger size for better quality
+    const avatarURL = message.author.displayAvatarURL({ format: 'png', size: 1024 }); // Fetch a larger avatar
+
+    // Create canvas with a width that accommodates the profile picture and text
+    const canvas = createCanvas(800, 400); // Adjust dimensions as needed
+    const ctx = canvas.getContext('2d');
+
+    // Fill the background with solid black
+    ctx.fillStyle = '#000000'; // Solid black
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Fills the entire canvas
+
+    // Declare avatar variable
+    let avatar;
+
+    // Load and draw the user's avatar
+    try {
+      // Fetch the avatar image
+      const response = await fetch(avatarURL);
+      const buffer = await response.buffer();
+
+      // Check the image type based on the URL or buffer
+      const imageType = response.headers.get('content-type');
+      if (!imageType || !imageType.startsWith('image/')) {
+        throw new Error('Unsupported image type');
+      }
+
+      // If the avatar is in webp format, convert it to PNG format
+      if (imageType === 'image/webp') {
+        const pngBuffer = await sharp(buffer).toFormat('png').toBuffer();
+        avatar = await loadImage(pngBuffer); // Load the converted PNG image
+      } else {
+        avatar = await loadImage(buffer); // Load the image directly
+      }
+    } catch (error) {
+      console.error('Failed to load avatar:', error);
+      // Use a default avatar image
+      try {
+        avatar = await loadImage(defaultAvatarPath);
+      } catch (defaultError) {
+        console.error('Failed to load default avatar:', defaultError);
+        return; // Early exit if both fail
+      }
+    }
+
+    const avatarWidth = canvas.width / 2; // Width of avatar (half of canvas width)
+    const avatarHeight = canvas.height; // Full height of the canvas
+    ctx.drawImage(avatar, 0, 0, avatarWidth, avatarHeight); // Position (0, 0) with calculated width and height
+
+    // Create a larger fading effect
+    const fadeWidth = 150; // Increase this value for a larger fade effect
+    const fadeGradient = ctx.createLinearGradient(avatarWidth - fadeWidth, 0, avatarWidth, 0); // Start gradient at the left edge of the fade area
+    fadeGradient.addColorStop(0, 'rgba(43, 45, 49, 0)'); // Transparent
+    fadeGradient.addColorStop(1, 'rgba(0, 0, 0, 1)'); // Black
+    ctx.fillStyle = fadeGradient;
+    ctx.fillRect(avatarWidth - fadeWidth, 0, fadeWidth, canvas.height); // Fill the rectangle with the fade effect
+
+    // Prepare the quote and author text
+    const quoteText = `"${message.content}"`;
+    const authorText = `- ${message.author.username}`; // Removed discriminator
+    const fullText = `${quoteText}\n${authorText}`; // Combine quote and author with a newline
+
+    // Determine the appropriate font size for the quote
+    let quoteFontSize = getFittedFontSize(ctx, quoteText, avatarWidth - 40, baseQuoteFontSize);
+    ctx.font = `bold italic ${quoteFontSize}px Arial`;
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center'; // Center align the text horizontally
+
+    // Text wrapping for the quote
+    const lines = getWrappedText(quoteText, avatarWidth - 40, ctx); // Adjusted to accommodate padding
+    const startingY = canvas.height / 2 - (lines.length * lineHeight) / 2;
+
+    // Draw each line of the quote centered on the right side
+    lines.forEach((line, index) => {
+      ctx.fillText(line, avatarWidth + (canvas.width - avatarWidth) / 2, startingY + index * lineHeight); // Centered on the right side
+    });
+
+    // Determine the appropriate font size for the author
+    let authorFontSize = getFittedFontSize(ctx, authorText, avatarWidth - 40, baseAuthorFontSize);
+    ctx.font = `bold ${authorFontSize}px Arial`;
+
+    // Draw the author text on a new line centered on the right side
+    ctx.fillText(authorText, avatarWidth + (canvas.width - avatarWidth) / 2, startingY + lines.length * lineHeight + lineHeight); // New line with added spacing
+
+    // Convert canvas to buffer
+    const buffer = canvas.toBuffer('image/png');
+
+    // Send the image with a link to the original message
+    const messageLink = `https://discord.com/channels/${interaction.guild.id}/${interaction.channelId}/${messageId}`;
+    await interaction.reply({
+      content: `**[Jump to Original Message](${messageLink})**`, // Updated content
+      files: [{ attachment: buffer, name: 'quote.png' }],
+    });
+  },
+
+  name: 'quote',
+  description: 'Quote a message!',
+  options: [
+    {
+      name: 'message_id',
+      description: 'The ID of the message to quote',
+      type: ApplicationCommandOptionType.String,
+      required: true,
+    },
+  ],
+};
+
+// Function to dynamically adjust font size based on the text and available width
+function getFittedFontSize(ctx, text, maxWidth, baseFontSize) {
+  let fontSize = baseFontSize;
+  ctx.font = `bold ${fontSize}px Arial`;
+
+  // Measure the text width and reduce the font size if it exceeds the max width
+  while (ctx.measureText(text).width > maxWidth && fontSize > 20) {
+    // Minimum font size of 20
+    fontSize -= 1; // Decrease font size by 1 for a more gradual adjustment
+    ctx.font = `bold ${fontSize}px Arial`;
+  }
+
+  return fontSize;
+}
+
+// Function to wrap text into multiple lines based on the maximum width
+function getWrappedText(text, maxWidth, ctx) {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine + (currentLine.length ? ' ' : '') + word;
+    const testWidth = ctx.measureText(testLine).width;
+
+    if (testWidth > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word; // Start a new line with the current word
+    } else {
+      currentLine = testLine;
+    }
+  }
+
+  if (currentLine) {
+    lines.push(currentLine); // Add the last line if there's any remaining text
+  }
+
+  return lines;
 }

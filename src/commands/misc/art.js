@@ -81,7 +81,7 @@ module.exports = {
 
                     const approvalChannel = await client.channels.fetch(approvalChannelId);
 
-                    await approvalChannel.send({ content: `<@&${pingRoleId}> new art has been posted!`, embeds: [approvalEmbed] });
+                    await approvalChannel.send({ content: `<@&${pingRoleId}> new art has been posted by <@${interaction.user.id}>!`, embeds: [approvalEmbed] });
                     await staffChannel.send('The art submission has been approved.');
                     
                 } else if (reaction.emoji.name === '❌') {

@@ -150,7 +150,7 @@ async function postTriviaQuestion(channel) {
 function createWinnerEmbed(winner, randomXP) {
   return new EmbedBuilder()
     .setTitle('Trivia Winner!')
-    .setDescription(`Congratulations <@${winner.id}>, you were first to answer correctly and are the Trivia Winner!`)
+    .setDescription(`Congratulations <@${winner.id}>, you were first to answer correctly!`)
     .setFooter({ text: `You have won: ${randomXP} XP!` })
     .setColor('#e67e22');
 }
