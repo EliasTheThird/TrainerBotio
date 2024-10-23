@@ -5,13 +5,12 @@ const path = require('path');
 
 const leaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboard.json');
 const backupLeaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboard-backup.json');
-const channelId = '1064371335016489011'; // general: 1064371335016489011 || testing: 1095238175187816449 || tServer: 1213751873383829536
+const channelId = '1064371335016489011'; // general: 1064371335016489011 || tServer: 1213751873383829536
 const threadChannelId = '1270799837557686342'; // TDG: 1270799837557686342 || tServer: 1160015142101192764
 const highLevelRoleId = '1103768817122934876'; // TDG: 1103768817122934876 || tServer: 1121896631277736026
 const logsChannelId = '1291931717271031859'; // TDG: 1291931717271031859 || tServer: 1160015142101192764
 const admins = '1062828085256400896'; // TDG: 1062828085256400896 || tServer: 1167886120445562880
 
-// Set the desired timezone
 const options = {
   timeZone: 'America/New_York',
   year: 'numeric',
@@ -20,35 +19,32 @@ const options = {
   hour: '2-digit',
   minute: '2-digit',
   second: '2-digit',
-  hour12: true, // Set to true for 12-hour format
+  hour12: true,
 };
 
 let triviaInterval;
 let triviaLoopRunning = false;
 let currentQuestion = null;
+let messageCount = 0;
+let lastTriviaTime = Date.now();
 
 module.exports = (client) => {
-  
-  let interval; // Variable to hold the setInterval reference
-
   client.on('interactionCreate', async (interaction) => {
     if (interaction.isButton()) {
-      
       if (interaction.channelId !== '1270799684491018310') {
-        return; // Exit if the channel ID does not match
+        return;
       }
-      
+
       const originalEmbed = interaction.message.embeds[0];
       const channel = interaction.channel;
 
-      const embed = new EmbedBuilder(originalEmbed.data); // Create a new instance from the existing embed data
+      const embed = new EmbedBuilder(originalEmbed.data);
 
       const now = new Date();
       const formattedDate = now.toLocaleString('en-US', options);
 
-      // Get the logs channel
       const logsChannel = await client.channels.fetch(logsChannelId);
-      // Log the button press in the logs channel
+
       if (logsChannel) {
         await logsChannel.send(`[${formattedDate}] Trivia Command **"${interaction.customId}"** run by: **${interaction.user.username}** (ID: ${interaction.user.id})`);
       } else {
@@ -64,7 +60,6 @@ module.exports = (client) => {
         triviaLoopRunning = true;
         await interaction.update({ embeds: [embed.setColor('#00FF00').setDescription('Trivia game started!')] });
         startTriviaLoop(client);
-
       } else if (interaction.customId === 'trivia_stop') {
         if (!triviaLoopRunning) {
           await interaction.update({ embeds: [embed.setColor('#FF0000').setDescription('Trivia game is not running!')] });
@@ -78,15 +73,33 @@ module.exports = (client) => {
       }
     }
   });
+
+  // Listen for messages to count them
+  client.on('messageCreate', async (message) => {
+    if (message.channel.id === channelId) {
+      messageCount++;
+
+      /* Logging
+      console.log(`Message Count: ${messageCount}`);
+      console.log(`Time Since Last Trivia: ${(Date.now() - lastTriviaTime) / 1000} S`);
+      */
+
+      if (messageCount >= 100 && Date.now() - lastTriviaTime >= 3600000 && triviaLoopRunning) { // SET TIME HERE
+        lastTriviaTime = Date.now();
+        await postQuestionAndAwaitAnswer(client, message.channel);
+        messageCount = 0;
+      }
+    }
+  });
 };
 
 const normalizeAnswer = (answer) => {
   return answer
-    .toLowerCase()                // Convert to lowercase
-    .trim()                        // Remove leading and trailing spaces
-    .normalize('NFD')              // Normalize accents and diacritics
-    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-    .replace(/\s+/g, '');          // Remove all spaces
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '');
 };
 
 function startTriviaLoop(client) {
@@ -96,41 +109,44 @@ function startTriviaLoop(client) {
     return;
   }
 
-  triviaLoopRunning = true; // Start the loop running state
+  triviaLoopRunning = true;
   console.log('Trivia loop started.');
-
-  // Check every minute
-  triviaInterval = setInterval(async () => {
-    const now = new Date();
-    if (now.getMinutes() === 0) { // Check if the current minute is zero (top of the hour)
-      await postQuestionAndAwaitAnswer(client, channel);
-    }
-  }, 60000); // Check every 60 second
 }
 
 async function postQuestionAndAwaitAnswer(client, channel) {
   const randomXP = getRandomInt(50, 100);
   const questionStartTime = Date.now();
 
+  /* Logging
+  console.log(`Question Posted`);
+  */  
+
   await postTriviaQuestion(channel);
 
-  const filter = response => {
+  const filter = (response) => {
     if (currentQuestion) {
       const normalizedUserAnswer = normalizeAnswer(response.content);
-      return currentQuestion.answer
-        .map(normalizeAnswer)
-        .some(answer => answer === normalizedUserAnswer);
+      return currentQuestion.answer.map(normalizeAnswer).some((answer) => answer === normalizedUserAnswer);
     }
     return false;
   };
 
   try {
-    const collected = await channel.awaitMessages({ filter, max: 1, time: 3540000, errors: ['time'] }); //59mins: 3540000 || 29S: 29000
+    const collected = await channel.awaitMessages({ filter, max: 1, time: 3540000, errors: ['time'] }); //59M: 3540000 || 59S: 59000
     const winner = collected.first().author;
+
+    /* Logging
+    console.log(`Question Answered`); // Logging
+    */
 
     await channel.send({ embeds: [createWinnerEmbed(winner, randomXP)] });
     await announceWinner(client, winner, randomXP);
   } catch (error) {
+
+    /* Logging
+    console.log(`Time Up`); // Logging
+    */
+
     await channel.send({ embeds: [createClosedEmbed()] });
   }
 }
@@ -156,17 +172,11 @@ function createWinnerEmbed(winner, randomXP) {
 }
 
 function createClosedEmbed() {
-  return new EmbedBuilder()
-    .setDescription('No correct answers were given in time. The trivia question is now closed.')
-    .setColor('#e67e22');
+  return new EmbedBuilder().setDescription('No correct answers were given in time. The trivia question is now closed.').setColor('#e67e22');
 }
 
 // List of special users
-const specialUsers = [
-  '699054958632370217',
-  '216404071253278720',
-  '742766266699481089',
-];
+const specialUsers = ['699054958632370217', '216404071253278720', '742766266699481089'];
 
 async function announceWinner(client, winner, randomXP) {
   const threadChannel = client.channels.cache.get(threadChannelId);
@@ -210,19 +220,22 @@ function updateLeaderboard(client, userId, xp, answeredCorrectly) {
         leaderboard = JSON.parse(leaderboardData);
       } else {
         // Fetch the logs channel
-        client.channels.fetch(logsChannelId).then(logsChannel => {
-          if (logsChannel) {
-            logsChannel.send(`<@&${admins}> Turn off Trivia, big error`).catch(err => console.error('Failed to send log message:', err));
-          } else {
-            console.error('Logs channel not found!');
-          }
-        }).catch(err => console.error('Failed to fetch logs channel:', err));
-        
+        client.channels
+          .fetch(logsChannelId)
+          .then((logsChannel) => {
+            if (logsChannel) {
+              logsChannel.send(`<@&${admins}> Turn off Trivia, big error`).catch((err) => console.error('Failed to send log message:', err));
+            } else {
+              console.error('Logs channel not found!');
+            }
+          })
+          .catch((err) => console.error('Failed to fetch logs channel:', err));
+
         leaderboard = { winners: [] }; // If no backup is available, initialize an empty leaderboard
       }
     }
 
-    let user = leaderboard.winners.find(w => w.id === userId);
+    let user = leaderboard.winners.find((w) => w.id === userId);
 
     if (user) {
       user.xp += xp;
@@ -242,7 +255,6 @@ function updateLeaderboard(client, userId, xp, answeredCorrectly) {
     console.error('Error updating leaderboard:', err);
   }
 }
-
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
