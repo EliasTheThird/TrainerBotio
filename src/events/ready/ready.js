@@ -4,7 +4,7 @@ module.exports = async (client) => {
     const admins = '1062828085256400896'; // TDG: 1062828085256400896 || tServer: 1167886120445562880
   
     if (channel) {
-      channel.send(`<@&${admins}> Trivia needs to be restarted!`);
+      channel.send(`TrainerBotio is back online!`);
     } else {
       console.error('Channel not found for ready command');
     }

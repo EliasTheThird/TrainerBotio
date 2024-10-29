@@ -84,7 +84,7 @@ module.exports = (client) => {
       console.log(`Time Since Last Trivia: ${(Date.now() - lastTriviaTime) / 1000} S`);
       */
 
-      if (messageCount >= 100 && Date.now() - lastTriviaTime >= 3600000 && triviaLoopRunning) { // SET TIME HERE
+      if (messageCount >= getRandomInt(50, 100) && Date.now() - lastTriviaTime >= 3600000 && triviaLoopRunning) { // SET TIME HERE
         lastTriviaTime = Date.now();
         await postQuestionAndAwaitAnswer(client, message.channel);
         messageCount = 0;

@@ -1,7 +1,4 @@
-const {
-  ApplicationCommandOptionType,
-  EmbedBuilder,
-} = require('discord.js');
+const { ApplicationCommandOptionType, EmbedBuilder } = require('discord.js');
 
 // Create a cooldown map to track user cooldowns
 const cooldowns = new Map();
@@ -31,10 +28,15 @@ module.exports = {
           }
           // Set the cooldown for the user
           cooldowns.set(userId, now);
+          // Clean up old cooldowns
+          setTimeout(() => cooldowns.delete(userId), cooldownAmount);
       }
 
       const user = interaction.options.getUser('user');
-      const member = await interaction.guild.members.fetch(user.id).catch(console.error);
+      const member = await interaction.guild.members.fetch(user.id).catch(error => {
+          console.error(error);
+          return null;
+      });
       const issuer = interaction.member; // `member` is the guild member who executed the command
 
       if (!member) {
@@ -96,7 +98,8 @@ module.exports = {
                   value: reason,
                   inline: false,
               }
-          );
+          )
+          .setFooter({ text: 'This is a fake warn.' });
 
       await interaction.reply({
           content: `📢 Hey, <@${user.id}>, you have been warned! 🤡`,

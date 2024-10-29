@@ -10,6 +10,10 @@ const statuses = [
     name: 'bot by EliasTheThird',
     type: ActivityType.Playing,
   },
+  {
+    name: 'GET HACKED 🛏️', // DEC 24
+    type: ActivityType.Playing,
+  },
 ];
 
 function setStatus(client) {
