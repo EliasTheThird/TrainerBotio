@@ -48,7 +48,8 @@ module.exports = {
             await interaction.editReply({ content: 'An error occurred while posting the art submission.' });
         }
     },
-
+    
+    deleted: true,
     name: 'postart',
     description: 'Manually post an art submission with image, title, description, and author',
     options: [

@@ -1,4 +1,4 @@
-const { Client, Interaction, PermissionFlagsBits, EmbedBuilder, ApplicationCommandOptionType } = require('discord.js');
+const { Client, Interaction, EmbedBuilder, ApplicationCommandOptionType } = require('discord.js');
 
 const suggestionThreadId = '1270799944776945766'; // The ID of the thread channel to post suggestions
 
@@ -15,12 +15,19 @@ module.exports = {
     const suggestionThread = client.channels.cache.get(suggestionThreadId);
 
     if (!suggestionThread) {
+      // Reply immediately to acknowledge the interaction
       await interaction.reply({
         content: 'Suggestion thread not found!',
         ephemeral: true,
       });
       return;
     }
+
+    // Acknowledge the interaction with a "processing" message
+    await interaction.reply({
+      content: 'Submitting your trivia suggestion...',
+      ephemeral: true,
+    });
 
     const suggestionEmbed = new EmbedBuilder()
       .setTitle('New Trivia Question Suggestion')
@@ -30,12 +37,24 @@ module.exports = {
         { name: 'Submitted by', value: `@${interaction.user.tag} (${interaction.user.id})` })
       .setColor('#e67e22');
 
-    await suggestionThread.send({ embeds: [suggestionEmbed] });
+    try {
+      // Send the trivia suggestion to the thread
+      await suggestionThread.send({ embeds: [suggestionEmbed] });
+      
+      // Follow up with the final message confirming the suggestion submission
+      await interaction.followUp({
+        content: 'Your trivia question suggestion has been submitted!',
+        ephemeral: true,
+      });
+    } catch (error) {
+      console.error('Error sending suggestion:', error);
 
-    await interaction.reply({
-      content: 'Your trivia question suggestion has been submitted!',
-      ephemeral: true,
-    });
+      // Handle error if sending to the thread fails
+      await interaction.followUp({
+        content: 'There was an error submitting your trivia suggestion. Please try again later.',
+        ephemeral: true,
+      });
+    }
   },
 
   name: 'trivia-suggestion',

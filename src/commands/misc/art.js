@@ -102,6 +102,7 @@ module.exports = {
         }
     },
 
+    deleted: true,
     name: 'art',
     description: 'Submit your art for approval!',
     options: [
