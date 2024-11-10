@@ -8,7 +8,8 @@ module.exports = {
    */
 
   callback: async (client, interaction) => {
-    const message = interaction.options.getString('message');
+
+    const message = interaction.options.getString('message').replace(/\\n/g, '\n');
     const specifiedChannel = interaction.options.getChannel('channel');
     const channel = specifiedChannel || interaction.channel;
 
@@ -27,25 +28,20 @@ module.exports = {
         // Fetch the target message from the specified channel
         targetMessage = await channel.messages.fetch(targetMessageId);
       } catch (error) {
-        // Check if the error is due to unknown message
         if (error.code === 10008) {
-          // Log a simplified message instead of the full error
           console.warn('Unknown message ID provided, cannot fetch the message.');
-
           await interaction.followUp({
             content: 'The specified message ID does not exist. Please provide a valid message ID.',
             ephemeral: true,
           });
         } else {
-          // Log the error details for any other errors
           console.error('Error fetching the target message:', error);
-
           await interaction.followUp({
             content: 'An error occurred while trying to fetch the message. Please try again later.',
             ephemeral: true,
           });
         }
-        return; // Exit to prevent further actions
+        return;
       }
     }
 
@@ -53,7 +49,6 @@ module.exports = {
     if (targetMessage) {
       try {
         await targetMessage.reply(message);
-        // Send a follow-up after replying to the target message
         await interaction.followUp({
           content: 'Replied to the target message!',
           ephemeral: true,
@@ -65,7 +60,6 @@ module.exports = {
       // If no target message was found or specified, send the message to the channel
       try {
         await channel.send(message);
-        // Send a follow-up after sending the message to the channel
         await interaction.followUp({
           content: 'Message sent in the channel!',
           ephemeral: true,
