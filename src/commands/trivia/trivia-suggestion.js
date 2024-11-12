@@ -1,6 +1,7 @@
 const { Client, Interaction, EmbedBuilder, ApplicationCommandOptionType } = require('discord.js');
 
 const suggestionThreadId = '1270799944776945766'; // The ID of the thread channel to post suggestions
+const restrictedRoleId = '1305999369245298769'; // Blacklisted role ID
 
 module.exports = {
   /**
@@ -9,6 +10,15 @@ module.exports = {
    * @param {Interaction} interaction
    */
   callback: async (client, interaction) => {
+    // Check if the user has the restricted role
+    if (interaction.member.roles.cache.has(restrictedRoleId)) {
+      await interaction.reply({
+        content: 'You are not allowed to submit suggestions.',
+        ephemeral: true,
+      });
+      return;
+    }
+
     const question = interaction.options.getString('question');
     const answer = interaction.options.getString('answer') || 'No answer provided';
 
