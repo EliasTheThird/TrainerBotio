@@ -146,6 +146,8 @@ async function postQuestionAndAwaitAnswer(client, channel) {
     /* Logging
     console.log(`Time Up`); // Logging
     */
+    console.error(`An error occurred: ${error.message}`);
+    console.error(error.stack);
 
     await channel.send({ embeds: [createClosedEmbed()] });
   }
