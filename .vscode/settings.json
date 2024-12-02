@@ -4,7 +4,7 @@
         "cooldowns",
         "devs",
         "eventee"
-    ]
+    ],
     // Whether git is enabled.
     "git.enabled": true,
 }
