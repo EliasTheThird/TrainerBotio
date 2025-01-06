@@ -7,57 +7,74 @@ const LEADERS_PER_PAGE = 10; // Number of leaderboard entries per page
 module.exports = {
   callback: async (client, interaction) => {
     try {
+      // Defer reply to avoid interaction timeout
+      await interaction.deferReply();
+
       const filePath = path.resolve(__dirname, '../../database/trivia-leaderboard.json');
 
-      // Read the leaderboard data from trivia-leaderboard.json
-      const data = await fs.readFile(filePath, 'utf-8');
-      const leaderboard = JSON.parse(data).winners;
+      // Read the leaderboard data
+      const data = await fs.readFile(filePath, 'utf-8').catch(() => null);
+      if (!data) {
+        throw new Error('Leaderboard file is missing or unreadable.');
+      }
+
+      const leaderboard = JSON.parse(data).winners || [];
+      if (leaderboard.length === 0) {
+        return await interaction.editReply('The leaderboard is empty.');
+      }
 
       // Get sorting option
       const sortBy = interaction.options.getString('sort_by') || 'correctAnswers';
 
       // Sort leaderboard based on the selected option
-      if (sortBy === 'xp') {
-        leaderboard.sort((a, b) => b.xp - a.xp);
-      } else {
-        leaderboard.sort((a, b) => b.correctAnswers - a.correctAnswers);
-      }
+      leaderboard.sort((a, b) => (sortBy === 'xp' ? b.xp - a.xp : b.correctAnswers - a.correctAnswers));
 
       // Get the page number and validate it
       const page = interaction.options.getInteger('page') || 1;
       const totalPages = Math.ceil(leaderboard.length / LEADERS_PER_PAGE);
       const currentPage = Math.min(Math.max(page, 1), totalPages); // Ensure the page is within range
 
-      // Prepare embed for leaderboard display
+      // Fetch user data for the current page
+      const startIndex = (currentPage - 1) * LEADERS_PER_PAGE;
+      const endIndex = Math.min(startIndex + LEADERS_PER_PAGE, leaderboard.length);
+
+      // Use Promise.all with error handling for parallel user fetches
+      const fields = await Promise.all(
+        leaderboard.slice(startIndex, endIndex).map(async (winner, index) => {
+          try {
+            const user = await client.users.fetch(winner.id);
+            const displayName = user.username;
+            return {
+              name: `${startIndex + index + 1}. ${displayName}`,
+              value: sortBy === 'xp'
+                ? `Earned XP: ${winner.xp || 0}`
+                : `Correct Answers: ${winner.correctAnswers}`,
+              inline: false,
+            };
+          } catch {
+            return {
+              name: `${startIndex + index + 1}. Unknown User`,
+              value: sortBy === 'xp'
+                ? `Earned XP: ${winner.xp || 0}`
+                : `Correct Answers: ${winner.correctAnswers}`,
+              inline: false,
+            };
+          }
+        })
+      );
+
+      // Create embed with leaderboard fields
       const embed = new EmbedBuilder()
         .setTitle('Trivia Leaderboard')
         .setColor('#e67e22')
         .setDescription(`Top Players by ${sortBy === 'xp' ? 'XP' : 'Correct Answers'} (Page ${currentPage}/${totalPages})`)
-        .addFields(
-          await Promise.all(
-            leaderboard.slice((currentPage - 1) * LEADERS_PER_PAGE, currentPage * LEADERS_PER_PAGE).map(async (winner, index) => {
-              const user = await client.users.fetch(winner.id).catch(() => null);
-              const displayName = user ? user.username : 'Unknown User';
-              
-              // Build fields based on the selected sort option
-              const fieldValue = sortBy === 'xp' 
-                ? `Earned XP: ${winner.xp || 0}`
-                : `Correct Answers: ${winner.correctAnswers}`;
+        .addFields(fields);
 
-              return {
-                name: `${(currentPage - 1) * LEADERS_PER_PAGE + index + 1}. ${displayName}`,
-                value: fieldValue,
-                inline: false,
-              };
-            })
-          )
-        );
-
-      // Reply with the embed
-      await interaction.reply({ embeds: [embed] });
+      // Send the embed as a reply
+      await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('Error fetching or parsing leaderboard data:', error);
-      await interaction.reply('There was an error fetching the leaderboard.');
+      await interaction.editReply('There was an error fetching the leaderboard.');
     }
   },
 

@@ -11,7 +11,7 @@ const statuses = [
     type: ActivityType.Playing,
   },
   {
-    name: 'GET HACKED 🛏️', // DEC 24
+    name: 'Ess the Best 2025',
     type: ActivityType.Playing,
   },
 ];
