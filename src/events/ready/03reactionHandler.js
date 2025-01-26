@@ -69,7 +69,15 @@ module.exports = (client) => {
               actionTaken = 'denied';
               logEmbed.setColor('Red').setTitle(`Request Denied by @${username}`).setThumbnail(avatarURL);
 
-              await member.send('**Your unban appeal for TrainerDario Gaming has been Denied!**\n> You may appeal [HERE](<https://discord.com/channels/1211814157544853524/1211821640594362408>)');
+              try {
+                await member.send('**Your unban appeal for TrainerDario Gaming has been Denied!**\n> You may appeal [HERE](<https://discord.com/channels/1211814157544853524/1211821640594362408>)');
+              } catch (error) {
+                if (error.code === 50007) {
+                  console.warn(`Cannot send a DM to user ${userId}: ${error.message}`);
+                } else {
+                  console.error(`Failed to send DM to user ${userId}:`, error);
+                }            
+              }
             }
 
             // Disable buttons
