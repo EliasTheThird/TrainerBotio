@@ -1,5 +1,6 @@
 const { Client, IntentsBitField } = require('discord.js');
 const setStatus = require('../../database/status-database');
+const updateSubcount = require('../../utils/updateSubCount')
 
 // Define timezone and date formatting options
 const options = {
@@ -18,6 +19,8 @@ const logChannelId = '1291931717271031859'; // TDG: 1291931717271031859 || Testi
 module.exports = (client) => {
   console.log(`${client.user.tag} is online.`);
   setStatus(client);
+  updateSubcount(client)
+  setInterval( () => updateSubcount(client), 6 * 60 * 60 * 1000)
 
   // Handle interactionCreate event
   client.on('interactionCreate', async (interaction) => {
