@@ -9,8 +9,10 @@ Basic bot designed to provide fun for the community.
 **What data does this bot collect?**
 
 TDG-Bot processes message content and member information in memory only as part of automated moderation. Specifically:
-• Message content & attachments — scanned transiently to detect coordinated spam from suspected hacked accounts. Content is shown in a private mod-only log and immediately discarded.
-• Member data — fetched on-demand to verify permissions (e.g. admin status) before applying moderation actions.
+
+• Message content & attachments - scanned transiently to detect coordinated spam from suspected hacked accounts. Content is shown in a private mod-only log and immediately discarded.
+
+• Member data - fetched on-demand to verify permissions (e.g. admin status) before applying moderation actions.
 
 **Is any data stored or shared?**
 
