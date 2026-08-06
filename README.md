@@ -1,6 +1,6 @@
 # TrainerBotio
 ### a custom discord bot designed for the TrainierDario Gaming discord server  
-> work in progress
+> work in progress (note github is out of date)
 
 Basic bot designed to provide fun for the community.
 
