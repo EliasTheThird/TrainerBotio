@@ -15,6 +15,18 @@ module.exports = {
       client.cooldowns = new Map();
     }
 
+    // --- ROLE BLOCK CHECK ---
+    const blockedRoleId = '1442591321377210369';
+    const member = interaction.member;
+
+    if (member.roles.cache.has(blockedRoleId)) {
+      return interaction.reply({
+        content: "You are not allowed to use this command.",
+        ephemeral: true,
+      });
+    }
+    // -------------------------
+
     let description = interaction.options.getString('description');
 
     // Remove mentions from the description
@@ -22,7 +34,7 @@ module.exports = {
 
     // const cooldownKey = `${interaction.user.id}-revive`; // per person cooldown
     const cooldownKey = 'global-revive-cooldown'; // global cooldown
-    const cooldown = 30 * 60 * 1000; // 30 minutes in milliseconds
+    const cooldown = 2 * 60 * 60 * 1000; // 2 hours
 
     if (client.cooldowns.has(cooldownKey) && Date.now() - client.cooldowns.get(cooldownKey) < cooldown) {
       await interaction.reply({

@@ -53,7 +53,7 @@ module.exports = {
       }
 
       // Array of Blacklisted Role IDs
-      const protectedRoleIds = ['1130293554279886908', '1062828085256400896'];
+      const protectedRoleIds = ['1130293554279886908'];
 
       // Check if the member has any of the protected roles
       if (protectedRoleIds.some(roleId => member.roles.cache.has(roleId))) {

@@ -47,17 +47,19 @@ module.exports = {
         { name: 'Submitted by', value: `@${interaction.user.tag} (${interaction.user.id})` })
       .setColor('#e67e22');
 
-    try {
+      try {
       // Send the trivia suggestion to the thread
       await suggestionThread.send({ embeds: [suggestionEmbed] });
       
       // Follow up with the final message confirming the suggestion submission
       await interaction.followUp({
         content: 'Your trivia question suggestion has been submitted!',
+        embeds: [suggestionEmbed],
         ephemeral: true,
       });
-    } catch (error) {
+      } catch (error) {
       console.error('Error sending suggestion:', error);
+
 
       // Handle error if sending to the thread fails
       await interaction.followUp({

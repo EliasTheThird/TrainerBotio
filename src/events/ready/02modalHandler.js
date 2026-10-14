@@ -1,6 +1,9 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = (client) => {
+  if (client._unbanModalHandlerRegistered) return;
+  client._unbanModalHandlerRegistered = true;
+
   client.on('interactionCreate', async (interaction) => {
 
     if (interaction.isModalSubmit() && interaction.customId === 'unban_modal') {

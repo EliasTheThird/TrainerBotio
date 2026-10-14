@@ -7,7 +7,7 @@ const leaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboa
 const backupLeaderboardPath = path.resolve(__dirname, '../../database/trivia-leaderboard-backup.json');
 const channelId = '1064371335016489011'; // general: 1064371335016489011 || tServer: 1213751873383829536
 const threadChannelId = '1270799837557686342'; // TDG: 1270799837557686342 || tServer: 1160015142101192764
-const highLevelRoleId = '1103768817122934876'; // TDG: 1103768817122934876 || tServer: 1121896631277736026
+// const highLevelRoleId = '1103768817122934876'; // TDG: 1103768817122934876 || tServer: 1121896631277736026
 const logsChannelId = '1291931717271031859'; // TDG: 1291931717271031859 || tServer: 1160015142101192764
 const admins = '1062828085256400896'; // TDG: 1062828085256400896 || tServer: 1167886120445562880
 
@@ -23,12 +23,15 @@ const options = {
 };
 
 let triviaInterval;
-let triviaLoopRunning = false;
+let triviaLoopRunning = true;
 let currentQuestion = null;
 let messageCount = 0;
 let lastTriviaTime = Date.now();
 
 module.exports = (client) => {
+  if (client._triviaHandlerRegistered) return;
+  client._triviaHandlerRegistered = true;
+
   client.on('interactionCreate', async (interaction) => {
     if (interaction.isButton()) {
       if (interaction.channelId !== '1270799684491018310') {
@@ -146,8 +149,8 @@ async function postQuestionAndAwaitAnswer(client, channel) {
     /* Logging
     console.log(`Time Up`); // Logging
     */
-    console.error(`An error occurred: ${error.message}`);
-    console.error(error.stack);
+   console.error(`An error occurred: ${error.message}`);
+   console.error(error.stack);
 
     await channel.send({ embeds: [createClosedEmbed()] });
   }
@@ -178,7 +181,7 @@ function createClosedEmbed() {
 }
 
 // List of special users
-const specialUsers = ['699054958632370217', '216404071253278720', '742766266699481089'];
+// const specialUsers = ['699054958632370217', '216404071253278720', '742766266699481089'];
 
 async function announceWinner(client, winner, randomXP) {
   const threadChannel = client.channels.cache.get(threadChannelId);
@@ -186,16 +189,8 @@ async function announceWinner(client, winner, randomXP) {
   const member = await guild.members.fetch(winner.id);
 
   if (threadChannel) {
-    if (specialUsers.includes(winner.id)) {
-      await threadChannel.send(`/xp add member:<@${winner.id}> xp:${randomXP}`);
-      updateLeaderboard(client, winner.id, randomXP, 1);
-    } else if (member.roles.cache.has(highLevelRoleId)) {
-      await threadChannel.send(`<@${winner.id}> is over level 100, no XP can be awarded.`);
-      updateLeaderboard(client, winner.id, randomXP, 1);
-    } else {
-      await threadChannel.send(`/xp add member:${winner.id} xp:${randomXP}`);
-      updateLeaderboard(client, winner.id, randomXP, 1);
-    }
+    await threadChannel.send(`/xp add member:${winner.id} xp:${randomXP}`);
+    updateLeaderboard(client, winner.id, randomXP, 1);
   } else {
     console.error('Thread channel not found!');
   }

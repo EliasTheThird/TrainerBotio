@@ -1,6 +1,9 @@
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
 
 module.exports = (client) => {
+  if (client._unbanButtonHandlerRegistered) return;
+  client._unbanButtonHandlerRegistered = true;
+
   client.on('interactionCreate', async (interaction) => {
 
     if (interaction.isButton() && interaction.customId === 'unban_request') {

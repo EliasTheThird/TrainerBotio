@@ -5,6 +5,12 @@ module.exports = (client) => {
     if (interaction.isButton()) {
       const { customId } = interaction;
 
+      // Only handle unban approve/deny buttons — every other button click in the
+      // guild (leaderboard paging, trivia start/stop, etc.) should be ignored here
+      if (customId !== 'approve_request' && customId !== 'deny_request') {
+        return;
+      }
+
       // Check if the interaction is in the correct guild
       if (interaction.guild.id === '1062827045744279613') { // TDG: 1062827045744279613 || Testing: 1095466674771214480
         // Ignore interactions from a specific channel

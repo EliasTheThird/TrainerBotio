@@ -11,15 +11,20 @@ module.exports = {
       await interaction.deferReply();
 
       const reply = await interaction.fetchReply();
-
       const ping = reply.createdTimestamp - interaction.createdTimestamp;
 
       await interaction.editReply(`Pong! Client: ${ping}ms | Websocket: ${client.ws.ping}ms`);
-
     } catch (error) {
       console.error('Error processing ping command:', error);
-      await interaction.editReply('There was an error while processing your command.');
+
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply('There was an error while processing your command.');
+      } else {
+        await interaction.reply({
+          content: 'There was an error while processing your command.',
+          ephemeral: true,
+        });
+      }
     }
   },
-  
 };

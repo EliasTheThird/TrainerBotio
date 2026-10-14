@@ -4,7 +4,7 @@ const statuses = [
   {
     name: 'TrainerDario',
     type: ActivityType.Streaming,
-    url: 'https://www.youtube.com/watch?v=b7ZnVHdmSbc&t=393s',
+    url: 'https://www.youtube.com/watch?v=3T7_U8du_cg',
   },
   {
     name: 'bot by EliasTheThird',

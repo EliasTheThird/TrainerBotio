@@ -1,20 +1,39 @@
 const artChannelIds = ['1304886471060357160', '1123709712005877821']; // IDs for the art channels
 const pingRoleId = '1270813980063174787'; // ID of the role to ping
 const exemptRoles = ['1064371301680169061', '1062828085256400896']; // Role IDs that are exempt from deletion
+const blockedRoleId = '1475173788202045550'; // Blocked from arts role
 
 module.exports = (client) => {
   client.on('messageCreate', async (message) => {
-    // Ignore self
+    // Ignore bots
     if (message.author.bot) return;
 
+    // Make sure member exists
+    if (!message.member) return;
+
+    // Check blocked role FIRST
+    if (message.member.roles.cache.has(blockedRoleId) && artChannelIds.includes(message.channel.id)) {
+      try {
+        await message.delete();
+
+        const warning = await message.channel.send({
+          content: `${message.author}, you are not allowed to post in art channels.`,
+        });
+
+        setTimeout(() => warning.delete().catch(() => {}), 5000);
+      } catch (err) {
+        console.error('Blocked role delete error:', err);
+      }
+      return; // stop execution
+    }
+
     // Check if the user has an exempt role
-    const hasExemptRole = message.member && message.member.roles.cache.some(role => exemptRoles.includes(role.id));
+    const hasExemptRole = message.member.roles.cache.some(role => exemptRoles.includes(role.id));
 
     // Check if message is in one of the art channels
     if (artChannelIds.includes(message.channel.id)) {
       if (message.attachments.size > 0) {
         try {
-          
           await message.channel.send({
             content: `<@&${pingRoleId}> new art has been posted by <@${message.author.id}>`,
           });
@@ -36,7 +55,7 @@ module.exports = (client) => {
           const warning = await message.channel.send({
             content: `${message.author}, only messages with attachments are allowed here!`,
           });
-          
+
           setTimeout(async () => {
             try {
               await warning.delete();
