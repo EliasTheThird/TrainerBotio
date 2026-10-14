@@ -1,6 +1,7 @@
 const { Client, IntentsBitField } = require('discord.js');
 const setStatus = require('../../database/status-database');
 const updateSubcount = require('../../utils/updateSubCount')
+const updateSubcount = require('../../utils/updateSubCount')
 
 // Define timezone and date formatting options
 const options = {
