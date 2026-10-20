@@ -135,7 +135,7 @@ async function postQuestionAndAwaitAnswer(client, channel) {
   };
 
   try {
-    const collected = await channel.awaitMessages({ filter, max: 1, time: 3540000, errors: ['time'] }); //59M: 3540000 || 59S: 59000
+    const collected = await channel.awaitMessages({ filter, max: 1, time: 600000, errors: ['time'] }); //59M: 3540000 || 59S: 59000
     const winner = collected.first().author;
 
     /* Logging
