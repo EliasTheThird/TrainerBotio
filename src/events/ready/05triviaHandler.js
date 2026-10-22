@@ -120,10 +120,6 @@ async function postQuestionAndAwaitAnswer(client, channel) {
   const randomXP = getRandomInt(50, 100);
   const questionStartTime = Date.now();
 
-  /* Logging
-  console.log(`Question Posted`);
-  */  
-
   await postTriviaQuestion(channel);
 
   const filter = (response) => {
@@ -138,19 +134,19 @@ async function postQuestionAndAwaitAnswer(client, channel) {
     const collected = await channel.awaitMessages({ filter, max: 1, time: 600000, errors: ['time'] }); //59M: 3540000 || 59S: 59000
     const winner = collected.first().author;
 
-    /* Logging
-    console.log(`Question Answered`); // Logging
-    */
-
     await channel.send({ embeds: [createWinnerEmbed(winner, randomXP)] });
     await announceWinner(client, winner, randomXP);
   } catch (error) {
+    const timestamp = new Date().toLocaleString('en-US', options);
 
-    /* Logging
-    console.log(`Time Up`); // Logging
-    */
-   console.error(`An error occurred: ${error.message}`);
-   console.error(error.stack);
+    if (error instanceof Error) {
+      // A real error (e.g. failed send or announceWinner problem)
+      console.error(`[${timestamp}] Trivia error: ${error.message}`);
+      console.error(error.stack);
+    } else {
+      // awaitMessages timeout: rejects with a Collection, not an Error
+      console.log(`[${timestamp}] Trivia question timed out with no correct answer.`);
+    }
 
     await channel.send({ embeds: [createClosedEmbed()] });
   }
